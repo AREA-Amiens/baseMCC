@@ -6,6 +6,7 @@ int impultionDroit=0,impultionGauche=0;
 float xRobot=0,yRobot=0,aRobot=0;
 //---------------------------variable provisoire---------------------------//
 float passe(0),tigtd=0;
+  coordonePolair parcouru,delta0,delta1;
 float tigtg=0;
 boolean bp(false);
 coordoneCartesient erreurCar;
@@ -53,23 +54,21 @@ void setup() {
 }
 
 void loop() {
-  if(!digitalRead(BOUTON)){
-    Serial1.print(consigne.r);
-    Serial1.print(" ");
-    Serial1.println(consigne.a);
-  }
+/*  if(!digitalRead(BOUTON)){
+      Serial1.print(erreur0.a);
+      Serial1.print(" ");
+      Serial1.println(erreur1.a);
+    }*/
 }
 void calculAsservisement(){
-  coordonePolair parcouru,delta0,delta1;
-  int PWMGauche=50,PWMDroit=100;
   parcouru=convertionEncodeur();
   cartesien(parcouru);
   delta1=delta0;
   delta0=erreur();
   consigne=regule(delta0,delta1);
-  if(consigne.r>10){
-    if(consigne.r>61)consigne.r=61;
-    else if(consigne.r<-61)consigne.r=-61;
+  if(consigne.r>20){
+    if(consigne.r>51)consigne.r=51;
+    else if(consigne.r<-51)consigne.r=-51;
     if(consigne.a>61)consigne.a=61;
     else if(consigne.a<-61)consigne.a=-61;
     if((consigne.r-consigne.a)>0){
@@ -88,7 +87,7 @@ void calculAsservisement(){
       digitalWrite(MOTEUR_GAUCHE_IN4,LOW);
       digitalWrite(MOTEUR_GAUCHE_IN3,HIGH);
     }
-    analogWrite(MOTEUR_GAUCHE_ENA,130+abs(consigne.r+consigne.a));
+    analogWrite(MOTEUR_GAUCHE_ENA,150+abs(consigne.r+consigne.a));
     //analogWrite(MOTEUR_GAUCHE_ENA,130);
   }else{
     analogWrite(MOTEUR_DROIT_ENA,0);
@@ -97,6 +96,15 @@ void calculAsservisement(){
 }
 coordonePolair regule(coordonePolair erreur0,coordonePolair erreur1){
   coordonePolair assair;
+  while(abs(erreur0.a)>=2*PI){
+    if(erreur0.a>0)erreur0.a-=2*PI;
+    if(erreur0.a<0)erreur0.a+=2*PI;
+  }
+  while(abs(erreur1.a)>=2*PI){
+    if(erreur1.a>0)erreur1.a-=2*PI;
+    if(erreur1.a<0)erreur1.a+=2*PI;
+  }
+
   assair.r=erreur0.r*KPG+(erreur0.r+erreur1.r)*KIG+(erreur0.r-erreur1.r)*KDG;
   assair.a=erreur0.a*KPT+(erreur0.a+erreur1.a)*KIT+(erreur0.a-erreur1.a)*KDT;
   return assair;
@@ -114,8 +122,22 @@ coordonePolair erreur(){
     erreurPol.a=(3*PI)/2;
   }
   erreurPol.a+=(3*PI/2);
-  erreurPol.a*=-1;
-  erreurPol.a-=emplacementRelleRobot.a;
+  //erreurPol.a*=-1;
+  while((emplacementRelleRobot.a>2*PI||emplacementRelleRobot.a<-2*PI)){
+    if(emplacementRelleRobot.a>0)emplacementRelleRobot.a-=2*PI;
+    else emplacementRelleRobot.a+=2*PI;
+  }
+  if(!digitalRead(BOUTON)){
+    Serial1.print(erreurPol.a/PI);
+    Serial1.print(" ");
+    Serial1.print(emplacementRelleRobot.a/PI);
+    Serial1.print(" ");
+    Serial1.println((erreurPol.a-=emplacementRelleRobot.a)/PI);
+  }
+  /*if(erreurPol.a>PI){
+    erreurPol.a-=PI;
+    erreurPol.a*=-1;
+  }*/
   return erreurPol;
 }
 void cartesien(coordonePolair dernierDep){
@@ -123,10 +145,12 @@ void cartesien(coordonePolair dernierDep){
   emplacementRelleRobot.x+=(dernierDep.r*((float)cos(emplacementRelleRobot.a)));
   emplacementRelleRobot.y+=(dernierDep.r*((float)sin(emplacementRelleRobot.a)));
   emplacementRelleRobot.a+=(dernierDep.a*PI);
+  //emplacementRelleRobot.a=emplacementRelleRobot.a+PI;
   while((emplacementRelleRobot.a>2*PI||emplacementRelleRobot.a<-2*PI)){
     if(emplacementRelleRobot.a>0)emplacementRelleRobot.a-=2*PI;
     else emplacementRelleRobot.a+=2*PI;
   }
+
 }
 coordonePolair convertionEncodeur(){
   float impD=0,impG=0;

@@ -40,11 +40,11 @@ typedef struct{
 
 #define COEF_ROT 0.0027440507//coeficient pour le calcuele de langle 2 / (pi * l'entraxe)
 //-------------coeficient assairvissemnt-----------------//
-#define KPG 1
+#define KPG 0.3
 #define KIG 0
 #define KDG 1
 
-#define KPT 3
+#define KPT 10
 #define KIT 0
 #define KDT 1
 //-------------definition des fonction--------------------//
